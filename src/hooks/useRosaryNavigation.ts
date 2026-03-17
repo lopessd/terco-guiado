@@ -5,7 +5,8 @@ import type { RosaryStep } from "@/utils/rosarySteps";
 
 export interface TransitionData {
   title: string;
-  image?: string;
+  background?: string;
+  mysteryImage?: string;
 }
 
 interface UseRosaryNavigationOptions {
@@ -44,7 +45,8 @@ export function useRosaryNavigation({
 
         setTransition({
           title: nextStep.title,
-          image: isNewMystery ? nextStep.mysteryBackground : undefined,
+          background: isNewMystery ? nextStep.mysteryBackground : undefined,
+          mysteryImage: isNewMystery && nextStep.type === "meditation" ? nextStep.image : undefined,
         });
 
         const duration = isNewMystery ? 2500 : 1200;

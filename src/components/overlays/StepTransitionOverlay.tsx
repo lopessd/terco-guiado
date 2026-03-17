@@ -9,27 +9,40 @@ interface StepTransitionOverlayProps {
 export function StepTransitionOverlay({ transition }: StepTransitionOverlayProps) {
   if (!transition) return null;
 
-  // Transição com imagem do mistério (fullscreen zoom)
-  if (transition.image) {
+  // Transição de mistério: fundo + imagem do mistério por cima
+  if (transition.background) {
     return (
       <div className="fixed inset-0 z-50 overflow-hidden">
-        {/* Imagem com zoom */}
+        {/* Imagem de fundo do cenário */}
         <img
-          src={transition.image}
+          src={transition.background}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover animate-mystery-zoom"
+          className="absolute inset-0 w-full h-full object-cover"
         />
-        {/* Gradiente escuro por cima */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30" />
+        <div className="absolute inset-0 bg-black/30" />
 
-        {/* Texto do mistério */}
-        <div className="absolute inset-0 flex flex-col items-center justify-end pb-[20vh]">
+        {/* Imagem do mistério centralizada por cima */}
+        {transition.mysteryImage && (
+          <div className="absolute inset-0 flex items-center justify-center p-4">
+            <img
+              src={transition.mysteryImage}
+              alt={transition.title}
+              className="w-[calc(100%+30%)] max-w-none md:w-full md:max-w-2xl h-auto rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)] animate-mystery-zoom"
+            />
+          </div>
+        )}
+
+        {/* Gradiente para o texto embaixo */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+
+        {/* Título do mistério */}
+        <div className="absolute inset-0 flex flex-col items-center justify-end pb-[8vh]">
           <div className="text-center px-6 animate-mystery-text-in">
-            <div className="w-12 h-0.5 bg-amber-400/60 mx-auto mb-5 rounded-full" />
-            <h2 className="text-3xl md:text-5xl font-serif font-light text-white leading-tight drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)] px-4">
+            <div className="w-12 h-0.5 bg-amber-400/60 mx-auto mb-4 rounded-full" />
+            <h2 className="text-2xl md:text-4xl font-serif font-light text-white leading-tight drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)] px-4">
               {transition.title}
             </h2>
-            <div className="w-12 h-0.5 bg-amber-400/60 mx-auto mt-5 rounded-full" />
+            <div className="w-12 h-0.5 bg-amber-400/60 mx-auto mt-4 rounded-full" />
           </div>
         </div>
       </div>
