@@ -20,9 +20,6 @@ export function MeditationCard({ step, theme }: MeditationCardProps) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6">
-          <p className="text-amber-300/90 text-xs font-medium uppercase tracking-widest mb-1">
-            {step.theme}
-          </p>
           <h2 className="text-xl md:text-2xl font-bold text-white leading-tight drop-shadow-lg">
             {step.title}
           </h2>
