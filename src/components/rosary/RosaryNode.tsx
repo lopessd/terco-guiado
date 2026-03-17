@@ -20,9 +20,9 @@ export function RosaryNode({ node, isCompleted, isActive, theme }: RosaryNodePro
   if (node.type === "cross") {
     return (
       <g className={isActive ? "animate-pulse" : "transition-colors duration-500"}>
-        <line x1="50" y1="105" x2="50" y2="115" stroke={fill} strokeWidth="1.5" strokeLinecap="round" />
-        <line x1="46" y1="108" x2="54" y2="108" stroke={fill} strokeWidth="1.5" strokeLinecap="round" />
-        {isActive && <circle cx="50" cy="110" r="8" fill={theme.svgActive} opacity="0.3" />}
+        <line x1={node.cx} y1={node.cy - 5} x2={node.cx} y2={node.cy + 5} stroke={fill} strokeWidth="1.5" strokeLinecap="round" />
+        <line x1={node.cx - 4} y1={node.cy - 2} x2={node.cx + 4} y2={node.cy - 2} stroke={fill} strokeWidth="1.5" strokeLinecap="round" />
+        {isActive && <circle cx={node.cx} cy={node.cy} r="8" fill={theme.svgActive} opacity="0.3" />}
       </g>
     );
   }
