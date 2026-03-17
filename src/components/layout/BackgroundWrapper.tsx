@@ -19,14 +19,10 @@ export function BackgroundWrapper({ theme, mysteryImage, children }: BackgroundW
         key={bgImage}
         src={bgImage}
         alt=""
-        className="fixed inset-0 z-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out"
+        className="fixed inset-0 z-0 w-full h-full object-cover"
       />
-      {/* Overlay gradiente do tema */}
-      <div
-        className={`fixed inset-0 z-[1] bg-gradient-to-b ${theme.overlay} mix-blend-multiply transition-colors duration-1000 ease-in-out`}
-      />
-      {/* Blur sutil */}
-      <div className="fixed inset-0 z-[2] bg-slate-900/40 backdrop-blur-[3px]" />
+      {/* Overlay escuro suave para legibilidade */}
+      <div className="fixed inset-0 z-[1] bg-black/40" />
       {/* Conteúdo */}
       <div className="relative z-10 flex-1 flex flex-col min-h-screen">
         {children}
