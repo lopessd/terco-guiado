@@ -14,6 +14,11 @@ interface PrayerCardProps {
   onPlayToggle: () => void;
 }
 
+function getBeadsTitle(step: RosaryStep, beadCount: number): string {
+  if (step.type !== "beads") return step.title;
+  return `${step.title.replace(/^\d+\s/, "")} ${beadCount + 1}/${step.beadIds.length}`;
+}
+
 export function PrayerCard({
   step,
   beadCount,
@@ -23,10 +28,12 @@ export function PrayerCard({
   isPlaying,
   onPlayToggle,
 }: PrayerCardProps) {
+  const title = step.type === "beads" ? getBeadsTitle(step, beadCount) : step.title;
+
   return (
     <div className="text-center animate-fadeIn flex flex-col items-center">
       <div className="bg-white/10 backdrop-blur-md px-6 py-2 rounded-full shadow-sm mb-4 inline-block border border-white/20">
-        <h2 className="text-xl md:text-2xl font-bold text-white">{step.title}</h2>
+        <h2 className="text-xl md:text-2xl font-bold text-white">{title}</h2>
       </div>
 
       {displaySubtitle && (
@@ -56,14 +63,6 @@ export function PrayerCard({
           {step.text}
         </p>
       </div>
-
-      {step.type === "beads" && (
-        <div
-          className={`mt-8 ${theme.primaryBg} text-white px-6 py-3 rounded-2xl font-bold text-lg inline-block border border-white/20 shadow-lg shadow-black/20`}
-        >
-          Conta {beadCount + 1} de {step.beadIds.length}
-        </div>
-      )}
     </div>
   );
 }
