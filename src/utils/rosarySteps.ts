@@ -5,7 +5,7 @@ export interface RosaryStepBase {
   title: string;
   text: string;
   pause: number;
-  mysteryImage?: string;
+  mysteryBackground?: string;
   mysteryTitle?: string;
 }
 
@@ -92,9 +92,9 @@ export function buildRosarySteps(mysteryKey: MysteryKey): RosaryStep[] {
     const largeBeadId = loopId;
     const smallBeadIds = Array.from({ length: 10 }, (_, i) => loopId + 1 + i);
 
-    // Campos compartilhados por todos os passos desta dezena
+    // Campos compartilhados - background do fundo durante toda a dezena
     const decadeCommon = {
-      mysteryImage: mystery.image,
+      mysteryBackground: mystery.background,
       mysteryTitle: `${index + 1}º Mistério: ${mystery.title}`,
     };
 

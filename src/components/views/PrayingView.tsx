@@ -63,7 +63,7 @@ export function PrayingView({
   const isTransitioning = transition !== null;
 
   return (
-    <BackgroundWrapper theme={theme} mysteryImage={currentStep.mysteryImage}>
+    <BackgroundWrapper theme={theme} mysteryImage={currentStep.mysteryBackground}>
       <StepTransitionOverlay transition={transition} />
 
       <PrayingHeader

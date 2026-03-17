@@ -38,13 +38,13 @@ export function useRosaryNavigation({
       if (newStepIdx !== currentStepIndex) {
         stopAudio();
         const nextStep = rosarySteps[newStepIdx];
-        const currentMystery = rosarySteps[currentStepIndex].mysteryImage;
-        const nextMystery = nextStep.mysteryImage;
+        const currentMystery = rosarySteps[currentStepIndex].mysteryBackground;
+        const nextMystery = nextStep.mysteryBackground;
         const isNewMystery = nextStep.type === "meditation" && nextMystery !== currentMystery;
 
         setTransition({
           title: nextStep.title,
-          image: isNewMystery ? nextStep.mysteryImage : undefined,
+          image: isNewMystery ? nextStep.mysteryBackground : undefined,
         });
 
         const duration = isNewMystery ? 2500 : 1200;
