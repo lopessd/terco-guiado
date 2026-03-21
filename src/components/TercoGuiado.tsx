@@ -54,13 +54,13 @@ export function TercoGuiado() {
       window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
     }
 
-    setTimeout(() => setIntroState("fading"), 3500);
     setTimeout(() => {
-      setIntroState("done");
+      setIntroState("fading");
       resetNavigation();
       setView("praying");
       window.scrollTo(0, 0);
-    }, 4500);
+    }, 3500);
+    setTimeout(() => setIntroState("done"), 4500);
   }, [resetNavigation]);
 
   const handleRestart = useCallback(() => {

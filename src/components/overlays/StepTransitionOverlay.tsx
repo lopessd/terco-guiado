@@ -19,7 +19,7 @@ export function StepTransitionOverlay({ transition }: StepTransitionOverlayProps
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-black/30" />
+        <div className="absolute inset-0 bg-navy-dark/40" />
 
         {/* Imagem do mistério centralizada por cima */}
         {transition.mysteryImage && (
@@ -33,16 +33,16 @@ export function StepTransitionOverlay({ transition }: StepTransitionOverlayProps
         )}
 
         {/* Gradiente para o texto embaixo */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-navy-dark/90 via-transparent to-navy-dark/30" />
 
         {/* Título do mistério */}
         <div className="absolute inset-0 flex flex-col items-center justify-end pb-[8vh]">
           <div className="text-center px-6 animate-mystery-text-in">
-            <div className="w-12 h-0.5 bg-amber-400/60 mx-auto mb-4 rounded-full" />
-            <h2 className="text-2xl md:text-4xl font-serif font-light text-white leading-tight drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)] px-4">
+            <div className="w-12 h-0.5 bg-gold/60 mx-auto mb-4 rounded-full" />
+            <h2 className="text-2xl md:text-4xl font-serif font-bold text-gold-light leading-tight drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)] px-4 tracking-wide">
               {transition.title}
             </h2>
-            <div className="w-12 h-0.5 bg-amber-400/60 mx-auto mt-4 rounded-full" />
+            <div className="w-12 h-0.5 bg-gold/60 mx-auto mt-4 rounded-full" />
           </div>
         </div>
       </div>
@@ -51,13 +51,13 @@ export function StepTransitionOverlay({ transition }: StepTransitionOverlayProps
 
   // Transição simples para orações
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 backdrop-blur-md text-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-dark/95 backdrop-blur-md text-cream">
       <div className="text-center animate-fadeInUp">
-        <div className="w-16 h-1 bg-amber-500 mx-auto mb-6 rounded-full opacity-50" />
-        <h2 className="text-4xl md:text-5xl font-serif font-light tracking-widest text-amber-400 drop-shadow-2xl px-4 text-center">
+        <div className="w-16 h-1 bg-gold mx-auto mb-6 rounded-full opacity-50" />
+        <h2 className="text-4xl md:text-5xl font-serif font-bold tracking-wide text-gold-light drop-shadow-2xl px-4 text-center">
           {transition.title}
         </h2>
-        <div className="w-16 h-1 bg-amber-500 mx-auto mt-6 rounded-full opacity-50" />
+        <div className="w-16 h-1 bg-gold mx-auto mt-6 rounded-full opacity-50" />
       </div>
     </div>
   );

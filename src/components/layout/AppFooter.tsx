@@ -2,10 +2,10 @@
 
 export function AppFooter() {
   return (
-    <footer className="w-full py-4 px-6 text-center text-sm text-white/70">
-      <p className="mb-2">
-        Feito por <span className="font-semibold text-white/90">Davi Lopes</span>{" "}
-        — <span className="italic">dev ao cubo</span>
+    <footer className="w-full py-4 px-6 text-center text-sm text-cream/70">
+      <p className="mb-2 font-sans">
+        Feito por <span className="font-semibold text-gold-light">Davi Lopes</span>{" "}
+        — <span className="italic text-cream/80">dev ao cubo</span>
       </p>
       <div className="flex items-center justify-center gap-4">
         <a
@@ -13,7 +13,7 @@ export function AppFooter() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="WhatsApp"
-          className="text-white/70 hover:text-white transition-colors"
+          className="text-cream/60 hover:text-gold-light transition-colors"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -30,7 +30,7 @@ export function AppFooter() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Instagram"
-          className="text-white/70 hover:text-white transition-colors"
+          className="text-cream/60 hover:text-gold-light transition-colors"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

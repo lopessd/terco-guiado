@@ -1,21 +1,37 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --navy: #1B3564;
+  --navy-light: #2A4A7F;
+  --navy-dark: #0F2340;
+  --gold: #C4962E;
+  --gold-light: #D4AD4A;
+  --gold-dark: #A67B1E;
+  --cream: #FDF8F0;
+  --cream-dark: #F5EDE0;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-background: var(--cream);
+  --color-foreground: var(--navy);
+  --color-navy: var(--navy);
+  --color-navy-light: var(--navy-light);
+  --color-navy-dark: var(--navy-dark);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-gold-dark: var(--gold-dark);
+  --color-cream: var(--cream);
+  --color-cream-dark: var(--cream-dark);
+  --font-serif: var(--font-cormorant);
+  --font-sans: var(--font-inter);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--cream);
+  color: var(--navy);
   margin: 0;
   padding: 0;
+  font-family: var(--font-inter), sans-serif;
 }
 
 /* --- Animações base --- */

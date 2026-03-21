@@ -6,6 +6,7 @@ import type { ThemeConfig } from "@/data/themes";
 import { BackgroundWrapper } from "@/components/layout/BackgroundWrapper";
 import { IntroOverlay } from "@/components/overlays/IntroOverlay";
 import { MysterySelector } from "@/components/cards/MysterySelector";
+import { AppFooter } from "@/components/layout/AppFooter";
 
 interface HomeViewProps {
   theme: ThemeConfig;
@@ -26,21 +27,21 @@ export function HomeView({
     <BackgroundWrapper theme={theme}>
       <IntroOverlay introState={introState} />
       <div className="flex-1 flex flex-col items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden p-8 text-center border border-white/20">
+        <div className="max-w-md w-full bg-cream/95 backdrop-blur-xl rounded-3xl shadow-2xl shadow-navy/20 overflow-hidden p-6 text-center border border-gold/20">
           <div className="mb-4 flex justify-center">
             <img src="/logo.png" alt="Terço Guiado" className="h-24 w-auto" />
           </div>
-          <p className="text-slate-500 mb-8">Deixe-se guiar passo a passo nesta oração.</p>
 
           <MysterySelector selectedKey={selectedMysteryKey} onSelect={onSelectMystery} />
 
           <button
             onClick={onStart}
-            className={`w-full ${theme.primaryBg} ${theme.primaryHover} text-white font-medium py-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg ${theme.shadow}`}
+            className="w-full bg-navy hover:bg-navy-light text-gold-light font-serif font-bold text-lg py-3.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-navy/30 tracking-wide"
           >
             <Play size={20} /> Começar a Rezar
           </button>
         </div>
+        <AppFooter />
       </div>
     </BackgroundWrapper>
   );

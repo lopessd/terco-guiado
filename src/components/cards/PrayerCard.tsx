@@ -32,24 +32,24 @@ export function PrayerCard({
 
   return (
     <div className="text-center animate-fadeIn flex flex-col items-center">
-      <div className="bg-white/10 backdrop-blur-md px-6 py-2 rounded-full shadow-sm mb-4 inline-block border border-white/20">
-        <h2 className="text-xl md:text-2xl font-bold text-white">{title}</h2>
+      <div className="bg-navy-dark/40 backdrop-blur-md px-6 py-2 rounded-full shadow-sm mb-4 inline-block border border-gold/20">
+        <h2 className="text-xl md:text-2xl font-serif font-bold text-gold-light tracking-wide">{title}</h2>
       </div>
 
       {displaySubtitle && (
-        <p className="bg-slate-950/40 text-white/90 backdrop-blur-sm px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+        <p className="bg-navy-dark/50 text-cream/90 backdrop-blur-sm px-4 py-1.5 rounded-full text-sm font-sans font-medium mb-6 border border-gold/10">
           {displaySubtitle}
         </p>
       )}
 
-      <div className="bg-white/95 backdrop-blur-xl p-6 md:p-8 rounded-[2rem] shadow-2xl border border-white/50 w-full relative">
+      <div className="bg-cream/95 backdrop-blur-xl p-6 md:p-8 rounded-[2rem] shadow-2xl border border-gold/20 w-full relative">
         {!isAudioEnabled && (
           <button
             onClick={onPlayToggle}
-            className={`absolute -top-5 right-6 bg-white border border-slate-200 shadow-md rounded-full p-3 flex items-center gap-2 transition-transform hover:scale-110 ${
+            className={`absolute -top-5 right-6 bg-cream border border-gold/30 shadow-md rounded-full p-3 flex items-center gap-2 transition-transform hover:scale-110 ${
               isPlaying
-                ? theme.primaryText
-                : "text-slate-400 hover:text-slate-800"
+                ? "text-navy"
+                : "text-navy/40 hover:text-navy"
             }`}
           >
             {isPlaying ? (
@@ -59,7 +59,7 @@ export function PrayerCard({
             )}
           </button>
         )}
-        <p className="text-lg md:text-xl text-slate-800 leading-relaxed whitespace-pre-line font-medium text-left">
+        <p className="text-lg md:text-xl text-navy leading-relaxed whitespace-pre-line font-serif font-medium text-left">
           {step.text}
         </p>
       </div>

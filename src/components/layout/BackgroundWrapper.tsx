@@ -2,7 +2,6 @@
 
 import type { ThemeConfig } from "@/data/themes";
 import type { ReactNode } from "react";
-import { AppFooter } from "@/components/layout/AppFooter";
 
 interface BackgroundWrapperProps {
   theme: ThemeConfig;
@@ -14,7 +13,7 @@ export function BackgroundWrapper({ theme, mysteryImage, children }: BackgroundW
   const bgImage = mysteryImage || theme.image;
 
   return (
-    <div className="min-h-screen relative flex flex-col font-sans text-slate-800 selection:bg-white/30">
+    <div className="min-h-screen relative flex flex-col font-sans text-navy selection:bg-gold/30">
       {/* Imagem de fundo */}
       <img
         key={bgImage}
@@ -23,11 +22,10 @@ export function BackgroundWrapper({ theme, mysteryImage, children }: BackgroundW
         className="fixed inset-0 z-0 w-full h-full object-cover"
       />
       {/* Overlay escuro suave para legibilidade */}
-      <div className="fixed inset-0 z-[1] bg-black/40" />
+      <div className="fixed inset-0 z-[1] bg-navy-dark/45" />
       {/* Conteúdo */}
       <div className="relative z-10 flex-1 flex flex-col min-h-screen">
         {children}
-        <AppFooter />
       </div>
     </div>
   );
