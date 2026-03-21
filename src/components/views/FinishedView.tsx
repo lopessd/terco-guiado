@@ -3,7 +3,6 @@
 import { CheckCircle2, RotateCcw } from "lucide-react";
 import type { ThemeConfig } from "@/data/themes";
 import { BackgroundWrapper } from "@/components/layout/BackgroundWrapper";
-import { AppFooter } from "@/components/layout/AppFooter";
 
 interface FinishedViewProps {
   theme: ThemeConfig;
@@ -30,7 +29,6 @@ export function FinishedView({ theme, onRestart }: FinishedViewProps) {
           </button>
         </div>
       </div>
-      <AppFooter />
     </BackgroundWrapper>
   );
 }

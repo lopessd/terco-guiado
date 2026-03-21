@@ -2,6 +2,7 @@
 
 import type { ThemeConfig } from "@/data/themes";
 import type { ReactNode } from "react";
+import { AppFooter } from "@/components/layout/AppFooter";
 
 interface BackgroundWrapperProps {
   theme: ThemeConfig;
@@ -26,6 +27,7 @@ export function BackgroundWrapper({ theme, mysteryImage, children }: BackgroundW
       {/* Conteúdo */}
       <div className="relative z-10 flex-1 flex flex-col min-h-screen">
         {children}
+        <AppFooter />
       </div>
     </div>
   );
