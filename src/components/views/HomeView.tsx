@@ -6,6 +6,7 @@ import type { ThemeConfig } from "@/data/themes";
 import { BackgroundWrapper } from "@/components/layout/BackgroundWrapper";
 import { IntroOverlay } from "@/components/overlays/IntroOverlay";
 import { MysterySelector } from "@/components/cards/MysterySelector";
+import { AppFooter } from "@/components/layout/AppFooter";
 
 interface HomeViewProps {
   theme: ThemeConfig;
@@ -47,6 +48,7 @@ export function HomeView({
           </button>
         </div>
       </div>
+      <AppFooter />
     </BackgroundWrapper>
   );
 }
