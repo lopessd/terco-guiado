@@ -10,6 +10,10 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   title: "Terço Guiado",
   description: "Reze o Santo Terço passo a passo, com meditação guiada.",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
