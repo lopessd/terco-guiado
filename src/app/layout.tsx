@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Inter } from "next/font/google";
+import { Lora, Inter } from "next/font/google";
 import "./globals.css";
 
-const playfair = Playfair_Display({
+const lora = Lora({
   variable: "--font-serif",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const inter = Inter({
@@ -29,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className={`${playfair.variable} ${inter.variable} antialiased`}>{children}</body>
+      <body className={`${lora.variable} ${inter.variable} antialiased`}>{children}</body>
     </html>
   );
 }
