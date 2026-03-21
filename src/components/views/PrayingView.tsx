@@ -11,6 +11,7 @@ import { RosaryVisual } from "@/components/rosary/RosaryVisual";
 import { MeditationCard } from "@/components/cards/MeditationCard";
 import { PrayerCard } from "@/components/cards/PrayerCard";
 import { PauseIndicator } from "@/components/cards/PauseIndicator";
+import { AppFooter } from "@/components/layout/AppFooter";
 
 interface PrayingViewProps {
   theme: ThemeConfig;
@@ -101,6 +102,8 @@ export function PrayingView({
 
           <PauseIndicator isWaiting={isWaiting} />
         </div>
+
+        <AppFooter />
       </main>
 
       <PrayingFooter
