@@ -30,10 +30,10 @@ export function PrayingHeader({
         <RotateCcw size={18} />
       </button>
       <div className="text-center flex-1 text-cream">
-        <span className="text-[10px] md:text-xs font-serif font-extrabold uppercase tracking-[0.2em] block text-gold-light">
+        <span className="text-[10px] md:text-xs font-serif font-bold uppercase tracking-[0.2em] block text-gold-light">
           {mysteryName}
         </span>
-        <span className="text-xs font-sans font-semibold text-cream/60">
+        <span className="text-xs font-sans font-medium text-cream/60">
           Passo {currentStepIndex + 1} de {totalSteps}
         </span>
       </div>

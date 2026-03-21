@@ -33,11 +33,11 @@ export function PrayerCard({
   return (
     <div className="text-center animate-fadeIn flex flex-col items-center">
       <div className="bg-navy-dark/40 backdrop-blur-md px-6 py-2 rounded-full shadow-sm mb-4 inline-block border border-gold/20">
-        <h2 className="text-xl md:text-2xl font-serif font-extrabold text-gold-light tracking-wide">{title}</h2>
+        <h2 className="text-xl md:text-2xl font-serif font-bold text-gold-light tracking-wide">{title}</h2>
       </div>
 
       {displaySubtitle && (
-        <p className="bg-navy-dark/50 text-cream/90 backdrop-blur-sm px-4 py-1.5 rounded-full text-sm font-sans font-semibold mb-6 border border-gold/10">
+        <p className="bg-navy-dark/50 text-cream/90 backdrop-blur-sm px-4 py-1.5 rounded-full text-sm font-sans font-medium mb-6 border border-gold/10">
           {displaySubtitle}
         </p>
       )}
@@ -59,7 +59,7 @@ export function PrayerCard({
             )}
           </button>
         )}
-        <p className="text-lg md:text-xl text-navy leading-relaxed whitespace-pre-line font-serif font-semibold text-left">
+        <p className="text-lg md:text-xl text-navy leading-relaxed whitespace-pre-line font-serif font-medium text-left">
           {step.text}
         </p>
       </div>

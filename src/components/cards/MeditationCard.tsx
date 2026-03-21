@@ -20,7 +20,7 @@ export function MeditationCard({ step }: MeditationCardProps) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-navy-dark/70 via-transparent to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6">
-          <h2 className="text-xl md:text-2xl font-serif font-extrabold text-gold-light leading-tight drop-shadow-lg tracking-wide">
+          <h2 className="text-xl md:text-2xl font-serif font-bold text-gold-light leading-tight drop-shadow-lg tracking-wide">
             {step.title}
           </h2>
         </div>
@@ -29,7 +29,7 @@ export function MeditationCard({ step }: MeditationCardProps) {
       {/* Texto de meditação */}
       <div className="bg-cream/95 backdrop-blur-xl p-6 md:p-8 rounded-[2rem] shadow-2xl border border-gold/20">
         <div className="w-12 h-1 bg-gold opacity-50 mx-auto mb-5 rounded-full" />
-        <p className="text-lg text-navy leading-relaxed text-center font-serif font-semibold">
+        <p className="text-lg text-navy leading-relaxed text-center font-serif font-medium">
           {step.text}
         </p>
       </div>
