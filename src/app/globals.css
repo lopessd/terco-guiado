@@ -22,7 +22,7 @@
   --color-gold-dark: var(--gold-dark);
   --color-cream: var(--cream);
   --color-cream-dark: var(--cream-dark);
-  --font-serif: var(--font-cormorant);
+  --font-serif: "Playfair Display", serif;
   --font-sans: var(--font-inter);
 }
 
