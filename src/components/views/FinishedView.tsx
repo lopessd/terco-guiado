@@ -36,7 +36,7 @@ export function FinishedView({ theme, onRestart }: FinishedViewProps) {
               Feito com dedicação por{" "}
               <span className="font-semibold text-navy/60">Davi Lopes</span>
               {" "}&mdash;{" "}
-              <span className="italic">dev ao cubo</span>
+              <span className="italic">Dev ao Cubo</span>
             </p>
             <div className="flex items-center justify-center gap-4 mt-2">
               <a

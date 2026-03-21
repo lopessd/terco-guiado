@@ -12,7 +12,7 @@ interface RosaryVisualProps {
 export function RosaryVisual({ theme, currentActiveNodeId }: RosaryVisualProps) {
   return (
     <div className="w-full h-[45vh] min-h-[300px] max-h-[500px] mb-6 relative flex items-center justify-center">
-      <svg viewBox="5 5 90 140" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
+      <svg viewBox="10 2 80 148" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
         <defs>
           {/* Gradiente para contas inativas (azul marinho) */}
           <radialGradient id="bead-inactive" cx="35%" cy="35%" r="65%">

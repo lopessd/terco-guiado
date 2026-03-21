@@ -5,7 +5,7 @@ export function AppFooter() {
     <footer className="w-full py-4 px-6 text-center text-sm text-cream/70">
       <p className="mb-2 font-sans">
         Feito por <span className="font-semibold text-gold-light">Davi Lopes</span>{" "}
-        — <span className="italic text-cream/80">dev ao cubo</span>
+        — <span className="italic text-cream/80">Dev ao Cubo</span>
       </p>
       <div className="flex items-center justify-center gap-4">
         <a
