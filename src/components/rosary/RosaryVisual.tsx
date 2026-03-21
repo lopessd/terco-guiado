@@ -1,6 +1,6 @@
 "use client";
 
-import { ROSARY_NODES, TAIL_PATH, LOOP_PATH } from "@/utils/rosaryGeometry";
+import { ROSARY_NODES, TAIL_PATH, LOOP_PATH, CONNECTOR_LEFT, CONNECTOR_RIGHT } from "@/utils/rosaryGeometry";
 import type { ThemeConfig } from "@/data/themes";
 import { RosaryNode } from "./RosaryNode";
 
@@ -12,7 +12,7 @@ interface RosaryVisualProps {
 export function RosaryVisual({ theme, currentActiveNodeId }: RosaryVisualProps) {
   return (
     <div className="w-full h-[45vh] min-h-[300px] max-h-[500px] mb-6 relative flex items-center justify-center">
-      <svg viewBox="10 2 80 148" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
+      <svg viewBox="10 0 80 148" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
         <defs>
           {/* Gradiente para contas inativas (azul marinho) */}
           <radialGradient id="bead-inactive" cx="35%" cy="35%" r="65%">
@@ -66,6 +66,22 @@ export function RosaryVisual({ theme, currentActiveNodeId }: RosaryVisualProps) 
         {/* Cordão da cauda */}
         <path
           d={TAIL_PATH}
+          stroke="#8B7355"
+          strokeWidth="0.5"
+          fill="none"
+          opacity="0.7"
+        />
+
+        {/* Conectores medalha → loop */}
+        <path
+          d={CONNECTOR_LEFT}
+          stroke="#8B7355"
+          strokeWidth="0.5"
+          fill="none"
+          opacity="0.7"
+        />
+        <path
+          d={CONNECTOR_RIGHT}
           stroke="#8B7355"
           strokeWidth="0.5"
           fill="none"

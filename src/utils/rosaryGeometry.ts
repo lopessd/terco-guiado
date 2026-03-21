@@ -5,27 +5,16 @@ export interface RosaryNode {
   type: "cross" | "large" | "small" | "centerpiece";
 }
 
-// Distribui pontos uniformemente ao longo de uma elipse por comprimento de arco
-function distributeOnEllipse(
-  cxCenter: number,
-  cyCenter: number,
-  rx: number,
-  ry: number,
-  count: number,
-  startAngle: number,
-  gapFraction: number
-): { cx: number; cy: number }[] {
-  // 1. Amostrar muitos pontos na elipse para calcular comprimento de arco
-  const samples = 2000;
+// Calcula comprimento de arco da elipse e retorna interpolador
+function buildEllipseArcTable(
+  rx: number, ry: number, startAngle: number, endAngle: number, samples: number
+) {
   const arcLengths: number[] = [0];
   const angles: number[] = [];
 
-  const angleStart = startAngle - gapFraction * Math.PI * 2;
-  const angleEnd = startAngle - (1 - gapFraction) * Math.PI * 2;
-
   for (let i = 0; i <= samples; i++) {
     const t = i / samples;
-    const angle = angleStart + t * (angleEnd - angleStart);
+    const angle = startAngle + t * (endAngle - startAngle);
     angles.push(angle);
 
     if (i > 0) {
@@ -38,13 +27,7 @@ function distributeOnEllipse(
 
   const totalLength = arcLengths[arcLengths.length - 1];
 
-  // 2. Para cada conta, encontrar o ângulo correspondente à distância uniforme
-  const points: { cx: number; cy: number }[] = [];
-
-  for (let i = 0; i < count; i++) {
-    const targetLength = ((i + 0.5) / count) * totalLength;
-
-    // Busca binária pelo sample mais próximo
+  function pointAtLength(targetLength: number) {
     let lo = 0;
     let hi = samples;
     while (lo < hi) {
@@ -52,13 +35,53 @@ function distributeOnEllipse(
       if (arcLengths[mid] < targetLength) lo = mid + 1;
       else hi = mid;
     }
-
-    // Interpolar entre lo-1 e lo
     const idx = Math.max(1, lo);
     const segLen = arcLengths[idx] - arcLengths[idx - 1];
     const frac = segLen > 0 ? (targetLength - arcLengths[idx - 1]) / segLen : 0;
-    const angle = angles[idx - 1] + frac * (angles[idx] - angles[idx - 1]);
+    return angles[idx - 1] + frac * (angles[idx] - angles[idx - 1]);
+  }
 
+  return { totalLength, pointAtLength };
+}
+
+// Distribui beads com espaçamento ponderado ao redor das contas grandes
+function distributeOnEllipseWeighted(
+  cxCenter: number,
+  cyCenter: number,
+  rx: number,
+  ry: number,
+  count: number,
+  startAngle: number,
+  gapFraction: number,
+  largeIndices: number[],
+  largeGapMultiplier: number
+): { cx: number; cy: number }[] {
+  const samples = 2000;
+  const angleStart = startAngle - gapFraction * Math.PI * 2;
+  const angleEnd = startAngle - (1 - gapFraction) * Math.PI * 2;
+
+  const { totalLength, pointAtLength } = buildEllipseArcTable(rx, ry, angleStart, angleEnd, samples);
+
+  const largeSet = new Set(largeIndices);
+
+  const gapWeights: number[] = [];
+  for (let i = 0; i < count; i++) {
+    const next = (i + 1) % count;
+    const touchesLarge = largeSet.has(i) || largeSet.has(next);
+    gapWeights.push(touchesLarge ? largeGapMultiplier : 1);
+  }
+
+  const totalWeight = gapWeights.reduce((a, b) => a + b, 0);
+
+  const cumLengths: number[] = [0];
+  for (let i = 0; i < count - 1; i++) {
+    const gapLength = (gapWeights[i] / totalWeight) * totalLength;
+    cumLengths.push(cumLengths[i] + gapLength);
+  }
+
+  const points: { cx: number; cy: number }[] = [];
+  for (let i = 0; i < count; i++) {
+    const angle = pointAtLength(cumLengths[i]);
     points.push({
       cx: cxCenter + rx * Math.cos(angle),
       cy: cyCenter + ry * Math.sin(angle),
@@ -71,20 +94,42 @@ function distributeOnEllipse(
 export function generateRosaryNodes(): RosaryNode[] {
   const nodes: RosaryNode[] = [];
 
-  // Cauda: cruz → pai nosso → 3 aves → glória → medalha
-  nodes.push({ id: 0, cx: 50, cy: 142, type: "cross" });
-  nodes.push({ id: 1, cx: 50, cy: 130, type: "large" });
-  nodes.push({ id: 2, cx: 50, cy: 122, type: "small" });
-  nodes.push({ id: 3, cx: 50, cy: 114, type: "small" });
-  nodes.push({ id: 4, cx: 50, cy: 106, type: "small" });
-  nodes.push({ id: 5, cx: 50, cy: 96, type: "large" });
-  nodes.push({ id: 6, cx: 50, cy: 85, type: "centerpiece" });
+  // ── Config ──
+  const centerpieceY = 85;
+  const tailLength = 47;
+  const crossToLargeGap = 17;
+  const largeToFirstAveGap = 7;
+  const lastAveToGloriaGap = 5;
+  const gloriaToCenterpieceGap = 10;
 
-  // Loop oval distribuído uniformemente por arco
-  const points = distributeOnEllipse(50, 46, 28, 38, 55, Math.PI / 2, 0.035);
+  // ── Cauda ──
+  const tailBottom = centerpieceY + tailLength;
+  const crossY = tailBottom;
+  const largeY = tailBottom - crossToLargeGap;
+  const gloriaY = centerpieceY + gloriaToCenterpieceGap;
 
-  for (let i = 0; i < 55; i++) {
-    const isLarge = i % 11 === 0;
+  const aveSpaceStart = largeY - largeToFirstAveGap;
+  const aveSpaceEnd = gloriaY + lastAveToGloriaGap;
+  const aveSpacing = (aveSpaceStart - aveSpaceEnd) / 2;
+
+  nodes.push({ id: 0, cx: 50, cy: crossY, type: "cross" });
+  nodes.push({ id: 1, cx: 50, cy: largeY, type: "large" });
+  nodes.push({ id: 2, cx: 50, cy: aveSpaceStart, type: "small" });
+  nodes.push({ id: 3, cx: 50, cy: aveSpaceStart - aveSpacing, type: "small" });
+  nodes.push({ id: 4, cx: 50, cy: aveSpaceEnd, type: "small" });
+  nodes.push({ id: 5, cx: 50, cy: gloriaY, type: "large" });
+  nodes.push({ id: 6, cx: 50, cy: centerpieceY, type: "centerpiece" });
+
+  // ── Loop oval: 54 contas (50 small + 4 large) ──
+  const largeIndices = [10, 21, 32, 43];
+  const startAngleRad = (87 * Math.PI) / 180;
+  const points = distributeOnEllipseWeighted(
+    50, 48, 27, 36, 54, startAngleRad, 0.021,
+    largeIndices, 1.8
+  );
+
+  for (let i = 0; i < 54; i++) {
+    const isLarge = (i === 10 || i === 21 || i === 32 || i === 43);
     nodes.push({
       id: 7 + i,
       cx: points[i].cx,
@@ -99,11 +144,19 @@ export function generateRosaryNodes(): RosaryNode[] {
 export const ROSARY_NODES = generateRosaryNodes();
 
 // Caminho da cauda (cruz até medalha)
-export const TAIL_PATH = "M 50 142 L 50 85";
+const crossNode = ROSARY_NODES[0];
+const centerpieceNode = ROSARY_NODES[6];
+export const TAIL_PATH = `M 50 ${crossNode.cy} L 50 ${centerpieceNode.cy}`;
 
-// Caminho do loop (oval suave)
+// Conectores medalha → loop
 const loopNodes = ROSARY_NODES.filter((n) => n.id >= 7);
-export const LOOP_PATH = `M ${loopNodes[0].cx},${loopNodes[0].cy} ${loopNodes
+const firstLoop = loopNodes[0];
+const lastLoop = loopNodes[loopNodes.length - 1];
+export const CONNECTOR_RIGHT = `M 50,${centerpieceNode.cy} L ${firstLoop.cx},${firstLoop.cy}`;
+export const CONNECTOR_LEFT = `M 50,${centerpieceNode.cy} L ${lastLoop.cx},${lastLoop.cy}`;
+
+// Caminho do loop
+export const LOOP_PATH = `M ${firstLoop.cx},${firstLoop.cy} ${loopNodes
   .slice(1)
   .map((n) => `L ${n.cx},${n.cy}`)
   .join(" ")} Z`;

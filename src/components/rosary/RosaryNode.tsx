@@ -42,7 +42,7 @@ export function RosaryNode({ node, isCompleted, isActive }: RosaryNodeProps) {
   }
 
   if (node.type === "centerpiece") {
-    const r = 3.5;
+    const r = 2.8;
     return (
       <g filter="url(#bead-shadow)">
         {isActive && (
@@ -77,7 +77,7 @@ export function RosaryNode({ node, isCompleted, isActive }: RosaryNodeProps) {
   }
 
   // Contas normais (small e large)
-  const r = node.type === "large" ? 2.5 : 1.5;
+  const r = node.type === "large" ? 2 : 1.1;
 
   return (
     <g filter="url(#bead-shadow)">

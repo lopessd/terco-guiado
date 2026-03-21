@@ -87,12 +87,18 @@ export function buildRosarySteps(mysteryKey: MysteryKey): RosaryStep[] {
   });
 
   // 7 – 5 dezenas do Terço
-  let loopId = 7;
+  // Layout do loop: 54 contas total
+  // 10 small (1ª dezena) → large → 10 small (2ª) → large → 10 small (3ª) → large → 10 small (4ª) → large → 10 small (5ª)
+  // IDs: 7-16 small, 17 large, 18-27 small, 28 large, 29-38 small, 39 large, 40-49 small, 50 large, 51-60 small
   mysteryData.mysteries.forEach((mystery, index) => {
-    const largeBeadId = loopId;
-    const smallBeadIds = Array.from({ length: 10 }, (_, i) => loopId + 1 + i);
+    // 1º mistério: Pai Nosso na medalha (id 6), Ave Marias em id 7-16
+    // 2º-5º: Pai Nosso na conta grande (id 17, 28, 39, 50), Ave Marias nas 10 seguintes
+    const largeBeatIds = [6, 17, 28, 39, 50];
+    const largeBeadId = largeBeatIds[index];
+    const smallBeadIds = index === 0
+      ? Array.from({ length: 10 }, (_, i) => 7 + i)
+      : Array.from({ length: 10 }, (_, i) => largeBeadId + 1 + i);
 
-    // Campos compartilhados - background do fundo durante toda a dezena
     const decadeCommon = {
       mysteryBackground: mystery.background,
       mysteryTitle: `${index + 1}º Mistério: ${mystery.title}`,
@@ -105,12 +111,12 @@ export function buildRosarySteps(mysteryKey: MysteryKey): RosaryStep[] {
       text: mystery.meditation,
       image: mystery.image,
       theme: mysteryData.theme,
-      activeId: index === 0 ? 6 : largeBeadId,
+      activeId: largeBeadId,
       pause: 3000,
       ...decadeCommon,
     });
 
-    // Pai Nosso (conta grande)
+    // Pai Nosso (conta grande ou medalha no 1º mistério)
     steps.push({
       type: "prayer",
       title: "Pai Nosso",
@@ -150,8 +156,6 @@ export function buildRosarySteps(mysteryKey: MysteryKey): RosaryStep[] {
       pause: 1000,
       ...decadeCommon,
     });
-
-    loopId += 11;
   });
 
   // 8 – Agradecimento
