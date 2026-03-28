@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { MYSTERIES, type MysteryKey } from "@/data/mysteries";
 import { THEMES } from "@/data/themes";
 import { getMysteryOfTheDay } from "@/utils/getMysteryOfTheDay";
@@ -18,11 +18,15 @@ export function TercoGuiado() {
   const [view, setView] = useState<View>("home");
   const [introState, setIntroState] = useState<IntroState>("idle");
   const [selectedMysteryKey, setSelectedMysteryKey] = useState<MysteryKey>(getMysteryOfTheDay);
+  const isPopstateRef = useRef(false);
 
   const theme = THEMES[selectedMysteryKey];
   const rosarySteps = useMemo(() => buildRosarySteps(selectedMysteryKey), [selectedMysteryKey]);
 
-  const onFinish = useCallback(() => setView("finished"), []);
+  const onFinish = useCallback(() => {
+    setView("finished");
+    history.pushState({ view: "finished" }, "", "#finalizado");
+  }, []);
 
   const {
     currentStepIndex,
@@ -33,6 +37,7 @@ export function TercoGuiado() {
     handleNext,
     handlePrev,
     reset: resetNavigation,
+    goTo,
   } = useRosaryNavigation({
     rosarySteps,
     stopAudio: () => audioControls.stopAudio(),
@@ -47,6 +52,42 @@ export function TercoGuiado() {
     isTransitioning: transition !== null,
     onNext: handleNext,
   });
+
+  // Sync prayer progress → URL hash
+  useEffect(() => {
+    if (isPopstateRef.current) {
+      isPopstateRef.current = false;
+      return;
+    }
+    if (view !== "praying") return;
+    const hash = `#rezando/${selectedMysteryKey}/${currentStepIndex}/${beadCount}`;
+    history.pushState(
+      { view: "praying", mystery: selectedMysteryKey, step: currentStepIndex, bead: beadCount },
+      "",
+      hash,
+    );
+  }, [view, selectedMysteryKey, currentStepIndex, beadCount]);
+
+  // Handle browser back/forward
+  useEffect(() => {
+    const handler = (e: PopStateEvent) => {
+      isPopstateRef.current = true;
+      const state = e.state;
+      if (state?.view === "praying") {
+        setView("praying");
+        if (state.mystery) setSelectedMysteryKey(state.mystery);
+        goTo(state.step, state.bead);
+      } else if (state?.view === "finished") {
+        setView("finished");
+      } else {
+        audioControls.stopAudio();
+        resetNavigation();
+        setView("home");
+      }
+    };
+    window.addEventListener("popstate", handler);
+    return () => window.removeEventListener("popstate", handler);
+  }, [goTo, audioControls.stopAudio, resetNavigation]);
 
   const handleStartSequence = useCallback(() => {
     setIntroState("playing");
@@ -67,6 +108,7 @@ export function TercoGuiado() {
     audioControls.stopAudio();
     resetNavigation();
     setView("home");
+    history.replaceState(null, "", window.location.pathname);
   }, [audioControls, resetNavigation]);
 
   const handlePlayToggle = useCallback(() => {

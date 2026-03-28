@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import type { RosaryStep } from "@/utils/rosarySteps";
 
 export interface TransitionData {
@@ -23,6 +23,12 @@ export function useRosaryNavigation({
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [beadCount, setBeadCount] = useState(0);
   const [transition, setTransition] = useState<TransitionData | null>(null);
+
+  const stopAudioRef = useRef(stopAudio);
+  useEffect(() => {
+    stopAudioRef.current = stopAudio;
+  });
+  const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const currentStep = rosarySteps[currentStepIndex];
   const currentActiveNodeId =
@@ -50,7 +56,7 @@ export function useRosaryNavigation({
         });
 
         const duration = isNewMystery ? 2500 : 1200;
-        setTimeout(() => {
+        transitionTimeoutRef.current = setTimeout(() => {
           setTransition(null);
           setCurrentStepIndex(newStepIdx);
           setBeadCount(newBeadIdx);
@@ -106,6 +112,14 @@ export function useRosaryNavigation({
     setTransition(null);
   }, []);
 
+  const goTo = useCallback((stepIdx: number, beadIdx: number) => {
+    stopAudioRef.current();
+    if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current);
+    setTransition(null);
+    setCurrentStepIndex(stepIdx);
+    setBeadCount(beadIdx);
+  }, []);
+
   return {
     currentStepIndex,
     beadCount,
@@ -115,5 +129,6 @@ export function useRosaryNavigation({
     handleNext,
     handlePrev,
     reset,
+    goTo,
   };
 }
