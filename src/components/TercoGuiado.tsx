@@ -7,18 +7,24 @@ import { getMysteryOfTheDay } from "@/utils/getMysteryOfTheDay";
 import { buildRosarySteps } from "@/utils/rosarySteps";
 import { useRosaryNavigation } from "@/hooks/useRosaryNavigation";
 import { useAudio } from "@/hooks/useAudio";
+import { useRosaryProgress } from "@/hooks/useRosaryProgress";
 import { HomeView } from "@/components/views/HomeView";
+import { ModeSelectionView } from "@/components/views/ModeSelectionView";
 import { PrayingView } from "@/components/views/PrayingView";
 import { FinishedView } from "@/components/views/FinishedView";
+import { IntroOverlay } from "@/components/overlays/IntroOverlay";
 
-type View = "home" | "praying" | "finished";
+type View = "home" | "mode-selection" | "praying" | "finished";
 type IntroState = "idle" | "playing" | "fading" | "done";
 
 export function TercoGuiado() {
   const [view, setView] = useState<View>("home");
   const [introState, setIntroState] = useState<IntroState>("idle");
   const [selectedMysteryKey, setSelectedMysteryKey] = useState<MysteryKey>(getMysteryOfTheDay);
+  const [prayerMode, setPrayerMode] = useState<"manual" | "auto">("auto");
   const isPopstateRef = useRef(false);
+  const introAudioRef = useRef<HTMLAudioElement | null>(null);
+  const didRestoreHash = useRef(false);
 
   const theme = THEMES[selectedMysteryKey];
   const rosarySteps = useMemo(() => buildRosarySteps(selectedMysteryKey), [selectedMysteryKey]);
@@ -51,7 +57,44 @@ export function TercoGuiado() {
     rosarySteps,
     isTransitioning: transition !== null,
     onNext: handleNext,
+    prayerMode,
+    mysteryKey: selectedMysteryKey,
   });
+
+  const { totalTime, elapsedTime, globalProgress, durationsLoaded } =
+    useRosaryProgress({
+      rosarySteps,
+      mysteryKey: selectedMysteryKey,
+      currentStepIndex,
+      beadCount,
+      audioProgress: audioControls.audioProgress,
+      pauseProgress: audioControls.pauseProgress,
+      playbackSpeed: audioControls.playbackSpeed,
+    });
+
+  // Restore state from URL hash on initial load
+  useEffect(() => {
+    if (didRestoreHash.current) return;
+    didRestoreHash.current = true;
+
+    const hash = window.location.hash;
+    const rezandoMatch = hash.match(
+      /^#rezando\/(gozosos|luminosos|dolorosos|gloriosos)\/(auto|manual)\/(\d+)\/(\d+)$/,
+    );
+    if (rezandoMatch) {
+      const mystery = rezandoMatch[1] as MysteryKey;
+      const mode = rezandoMatch[2] as "manual" | "auto";
+      const step = parseInt(rezandoMatch[3], 10);
+      const bead = parseInt(rezandoMatch[4], 10);
+      setSelectedMysteryKey(mystery);
+      setPrayerMode(mode);
+      setView("praying");
+      setIntroState("done");
+      setTimeout(() => goTo(step, bead), 0);
+    } else if (hash === "#finalizado") {
+      setView("finished");
+    }
+  }, [goTo]);
 
   // Sync prayer progress → URL hash
   useEffect(() => {
@@ -60,13 +103,13 @@ export function TercoGuiado() {
       return;
     }
     if (view !== "praying") return;
-    const hash = `#rezando/${selectedMysteryKey}/${currentStepIndex}/${beadCount}`;
+    const hash = `#rezando/${selectedMysteryKey}/${prayerMode}/${currentStepIndex}/${beadCount}`;
     history.pushState(
-      { view: "praying", mystery: selectedMysteryKey, step: currentStepIndex, bead: beadCount },
+      { view: "praying", mystery: selectedMysteryKey, mode: prayerMode, step: currentStepIndex, bead: beadCount },
       "",
       hash,
     );
-  }, [view, selectedMysteryKey, currentStepIndex, beadCount]);
+  }, [view, selectedMysteryKey, prayerMode, currentStepIndex, beadCount]);
 
   // Handle browser back/forward
   useEffect(() => {
@@ -76,7 +119,10 @@ export function TercoGuiado() {
       if (state?.view === "praying") {
         setView("praying");
         if (state.mystery) setSelectedMysteryKey(state.mystery);
+        if (state.mode) setPrayerMode(state.mode);
         goTo(state.step, state.bead);
+      } else if (state?.view === "mode-selection") {
+        setView("mode-selection");
       } else if (state?.view === "finished") {
         setView("finished");
       } else {
@@ -90,9 +136,20 @@ export function TercoGuiado() {
   }, [goTo, audioControls.stopAudio, resetNavigation]);
 
   const handleStartSequence = useCallback(() => {
+    setView("mode-selection");
+    history.pushState({ view: "mode-selection" }, "", "#modo");
+  }, []);
+
+  const handleModeConfirm = useCallback((mode: "manual" | "auto", withAudio: boolean) => {
+    setPrayerMode(mode);
+    audioControls.setAudioEnabled(withAudio);
     setIntroState("playing");
-    if (typeof window !== "undefined" && window.speechSynthesis) {
-      window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
+
+    // Play sinal da cruz audio
+    if (withAudio) {
+      const audio = new Audio("/audio/oracoes/sinal-cruz.mp3");
+      introAudioRef.current = audio;
+      audio.play().catch(() => {});
     }
 
     setTimeout(() => {
@@ -101,8 +158,19 @@ export function TercoGuiado() {
       setView("praying");
       window.scrollTo(0, 0);
     }, 3500);
-    setTimeout(() => setIntroState("done"), 4500);
-  }, [resetNavigation]);
+    setTimeout(() => {
+      setIntroState("done");
+      if (introAudioRef.current) {
+        introAudioRef.current.pause();
+        introAudioRef.current = null;
+      }
+    }, 4500);
+  }, [resetNavigation, audioControls]);
+
+  const handleModeBack = useCallback(() => {
+    setView("home");
+    history.back();
+  }, []);
 
   const handleRestart = useCallback(() => {
     audioControls.stopAudio();
@@ -119,40 +187,64 @@ export function TercoGuiado() {
     }
   }, [audioControls, currentStep, beadCount]);
 
-  if (view === "home") {
-    return (
-      <HomeView
-        theme={theme}
-        introState={introState}
-        selectedMysteryKey={selectedMysteryKey}
-        onSelectMystery={setSelectedMysteryKey}
-        onStart={handleStartSequence}
-      />
-    );
-  }
-
-  if (view === "finished") {
-    return <FinishedView theme={theme} onRestart={handleRestart} />;
-  }
-
   return (
-    <PrayingView
-      theme={theme}
-      mysteryName={MYSTERIES[selectedMysteryKey].name}
-      currentStepIndex={currentStepIndex}
-      totalSteps={rosarySteps.length}
-      currentStep={currentStep}
-      currentActiveNodeId={currentActiveNodeId}
-      beadCount={beadCount}
-      transition={transition}
-      isAudioEnabled={audioControls.isAudioEnabled}
-      isPlaying={audioControls.isPlaying}
-      isWaiting={audioControls.isWaiting}
-      onRestart={handleRestart}
-      onToggleAudio={audioControls.toggleAutoPlay}
-      onPlayToggle={handlePlayToggle}
-      onPrev={handlePrev}
-      onNext={handleNext}
-    />
+    <>
+      <IntroOverlay introState={introState} />
+
+      {view === "home" && (
+        <HomeView
+          theme={theme}
+          selectedMysteryKey={selectedMysteryKey}
+          onSelectMystery={setSelectedMysteryKey}
+          onStart={handleStartSequence}
+        />
+      )}
+
+      {view === "mode-selection" && (
+        <ModeSelectionView
+          theme={theme}
+          mysteryName={MYSTERIES[selectedMysteryKey].name}
+          onConfirm={handleModeConfirm}
+          onBack={handleModeBack}
+        />
+      )}
+
+      {view === "finished" && (
+        <FinishedView theme={theme} onRestart={handleRestart} />
+      )}
+
+      {view === "praying" && (
+        <PrayingView
+          theme={theme}
+          mysteryName={MYSTERIES[selectedMysteryKey].name}
+          currentStepIndex={currentStepIndex}
+          totalSteps={rosarySteps.length}
+          currentStep={currentStep}
+          currentActiveNodeId={currentActiveNodeId}
+          beadCount={beadCount}
+          transition={transition}
+          isAudioEnabled={audioControls.isAudioEnabled}
+          isPlaying={audioControls.isPlaying}
+          isPaused={audioControls.isPaused}
+          isWaiting={audioControls.isWaiting}
+          prayerMode={prayerMode}
+          playbackSpeed={audioControls.playbackSpeed}
+          audioProgress={audioControls.audioProgress}
+          globalProgress={globalProgress}
+          elapsedTime={elapsedTime}
+          totalTime={totalTime}
+          durationsLoaded={durationsLoaded}
+          rosarySteps={rosarySteps}
+          onRestart={handleRestart}
+          onToggleAudio={audioControls.toggleAutoPlay}
+          onPlayToggle={handlePlayToggle}
+          onPause={audioControls.pauseAudio}
+          onResume={audioControls.resumeAudio}
+          onPrev={handlePrev}
+          onNext={handleNext}
+          onSpeedChange={audioControls.setPlaybackSpeed}
+        />
+      )}
+    </>
   );
 }

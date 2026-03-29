@@ -2,6 +2,10 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import type { RosaryStep } from "@/utils/rosarySteps";
+import type { MysteryKey } from "@/data/mysteries";
+import { getAudioPath } from "@/utils/audioMapping";
+
+export type PlaybackSpeed = 1 | 1.5 | 2;
 
 interface UseAudioOptions {
   view: string;
@@ -10,6 +14,8 @@ interface UseAudioOptions {
   rosarySteps: RosaryStep[];
   isTransitioning: boolean;
   onNext: () => void;
+  prayerMode: "manual" | "auto";
+  mysteryKey: MysteryKey;
 }
 
 export function useAudio({
@@ -19,78 +25,186 @@ export function useAudio({
   rosarySteps,
   isTransitioning,
   onNext,
+  prayerMode,
+  mysteryKey,
 }: UseAudioOptions) {
-  const [isAudioEnabled, setIsAudioEnabled] = useState(false);
+  const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [isWaiting, setIsWaiting] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState<PlaybackSpeed>(1);
+  const [audioProgress, setAudioProgress] = useState(0);
+  const [pauseProgress, setPauseProgress] = useState(0);
 
-  const isAudioEnabledRef = useRef(isAudioEnabled);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const isAudioEnabledRef = useRef(isAudioEnabled);
   const onNextRef = useRef(onNext);
+  const prayerModeRef = useRef(prayerMode);
+  const playbackSpeedRef = useRef(playbackSpeed);
 
-  useEffect(() => {
-    isAudioEnabledRef.current = isAudioEnabled;
-  }, [isAudioEnabled]);
+  // Pause tracking refs
+  const isWaitingRef = useRef(false);
+  const pauseStartRef = useRef(0);
+  const pauseDurationMsRef = useRef(0);
+  const frozenPauseElapsedRef = useRef(0);
+  const wasPausedDuringWaitRef = useRef(false);
 
+  useEffect(() => { isAudioEnabledRef.current = isAudioEnabled; }, [isAudioEnabled]);
+  useEffect(() => { onNextRef.current = onNext; }, [onNext]);
+  useEffect(() => { prayerModeRef.current = prayerMode; }, [prayerMode]);
+  useEffect(() => { playbackSpeedRef.current = playbackSpeed; }, [playbackSpeed]);
+
+  // Update playbackRate on existing audio when speed changes
   useEffect(() => {
-    onNextRef.current = onNext;
-  }, [onNext]);
+    if (audioRef.current) {
+      audioRef.current.playbackRate = playbackSpeed;
+    }
+  }, [playbackSpeed]);
+
+  const stopProgressTracking = useCallback(() => {
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+  }, []);
+
+  const startProgressTracking = useCallback(() => {
+    stopProgressTracking();
+    const tick = () => {
+      const audio = audioRef.current;
+      if (audio && audio.duration && !audio.paused) {
+        setAudioProgress(audio.currentTime / audio.duration);
+      }
+      if (isWaitingRef.current && pauseDurationMsRef.current > 0) {
+        const elapsed = performance.now() - pauseStartRef.current;
+        setPauseProgress(Math.min(elapsed / pauseDurationMsRef.current, 1));
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+  }, [stopProgressTracking]);
 
   const stopAudio = useCallback(() => {
-    if (typeof window !== "undefined" && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
+    stopProgressTracking();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.removeAttribute("src");
+      audioRef.current.load();
+      audioRef.current = null;
     }
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    isWaitingRef.current = false;
+    wasPausedDuringWaitRef.current = false;
     setIsPlaying(false);
+    setIsPaused(false);
     setIsWaiting(false);
-  }, []);
+    setAudioProgress(0);
+    setPauseProgress(0);
+  }, [stopProgressTracking]);
+
+  const pauseAudio = useCallback(() => {
+    if (audioRef.current && isPlaying) {
+      audioRef.current.pause();
+      stopProgressTracking();
+      setIsPlaying(false);
+      setIsPaused(true);
+    } else if (isWaiting) {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      frozenPauseElapsedRef.current =
+        performance.now() - pauseStartRef.current;
+      stopProgressTracking();
+      isWaitingRef.current = false;
+      setIsWaiting(false);
+      setIsPaused(true);
+      wasPausedDuringWaitRef.current = true;
+    }
+  }, [isPlaying, isWaiting, stopProgressTracking]);
+
+  const resumeAudio = useCallback(() => {
+    if (!isPaused) return;
+
+    if (wasPausedDuringWaitRef.current) {
+      wasPausedDuringWaitRef.current = false;
+      const remaining =
+        pauseDurationMsRef.current - frozenPauseElapsedRef.current;
+      if (remaining <= 0) {
+        setIsPaused(false);
+        onNextRef.current();
+        return;
+      }
+      // Adjust start time so progress calculation continues smoothly
+      pauseStartRef.current =
+        performance.now() - frozenPauseElapsedRef.current;
+      isWaitingRef.current = true;
+      setIsWaiting(true);
+      setIsPaused(false);
+      startProgressTracking();
+      timeoutRef.current = setTimeout(() => {
+        isWaitingRef.current = false;
+        setIsWaiting(false);
+        stopProgressTracking();
+        onNextRef.current();
+      }, remaining);
+    } else if (audioRef.current) {
+      audioRef.current.play().catch(() => {});
+      startProgressTracking();
+      setIsPlaying(true);
+      setIsPaused(false);
+    } else {
+      setIsPaused(false);
+      onNextRef.current();
+    }
+  }, [isPaused, startProgressTracking, stopProgressTracking]);
 
   const speakText = useCallback(
     (step: RosaryStep, beadIdx: number) => {
-      if (typeof window === "undefined" || !window.speechSynthesis) return;
-      window.speechSynthesis.cancel();
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      setIsWaiting(false);
+      stopAudio();
 
-      let textToSpeak = step.text;
+      const src = getAudioPath(step, beadIdx, mysteryKey);
+      const audio = new Audio(src);
+      audio.playbackRate = playbackSpeedRef.current;
+      audioRef.current = audio;
 
-      if (step.type === "beads" && step.beadIds.length === 3) {
-        if (beadIdx === 0)
-          textToSpeak =
-            "A primeira Ave Maria em honra a Deus Pai que nos criou. " +
-            textToSpeak;
-        else if (beadIdx === 1)
-          textToSpeak =
-            "A segunda Ave Maria a Deus Filho que nos remiu. " + textToSpeak;
-        else if (beadIdx === 2)
-          textToSpeak =
-            "A terceira Ave Maria ao Espírito Santo que nos santifica. " +
-            textToSpeak;
-      } else if (step.type === "meditation") {
-        textToSpeak = step.title + ". " + textToSpeak;
-      }
+      audio.onplay = () => {
+        setIsPlaying(true);
+        setIsPaused(false);
+        startProgressTracking();
+      };
 
-      const utterance = new SpeechSynthesisUtterance(textToSpeak);
-      utterance.lang = "pt-BR";
-      utterance.rate = 0.9;
-
-      utterance.onstart = () => setIsPlaying(true);
-
-      utterance.onend = () => {
+      audio.onended = () => {
         setIsPlaying(false);
-        if (isAudioEnabledRef.current && view === "praying") {
+        setAudioProgress(1);
+        if (isAudioEnabledRef.current && prayerModeRef.current === "auto") {
+          isWaitingRef.current = true;
           setIsWaiting(true);
+          setPauseProgress(0);
+          pauseStartRef.current = performance.now();
+          pauseDurationMsRef.current = step.pause || 1000;
+          // Keep RAF running for pause progress tracking
           timeoutRef.current = setTimeout(() => {
+            isWaitingRef.current = false;
             setIsWaiting(false);
+            setPauseProgress(1);
+            stopProgressTracking();
             onNextRef.current();
           }, step.pause || 1000);
+        } else {
+          stopProgressTracking();
         }
       };
 
-      utterance.onerror = () => setIsPlaying(false);
-      window.speechSynthesis.speak(utterance);
+      audio.onerror = () => {
+        stopProgressTracking();
+        setIsPlaying(false);
+      };
+
+      audio.play().catch(() => {
+        setIsPlaying(false);
+      });
     },
-    [view]
+    [mysteryKey, stopAudio, startProgressTracking, stopProgressTracking],
   );
 
   const toggleAutoPlay = useCallback(() => {
@@ -115,9 +229,17 @@ export function useAudio({
   return {
     isAudioEnabled,
     isPlaying,
+    isPaused,
     isWaiting,
+    playbackSpeed,
+    audioProgress,
+    pauseProgress,
     speakText,
     stopAudio,
+    pauseAudio,
+    resumeAudio,
     toggleAutoPlay,
+    setPlaybackSpeed,
+    setAudioEnabled: setIsAudioEnabled,
   };
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { Play, PauseCircle } from "lucide-react";
 import type { RosaryStep } from "@/utils/rosarySteps";
 import type { ThemeConfig } from "@/data/themes";
@@ -11,12 +12,37 @@ interface PrayerCardProps {
   theme: ThemeConfig;
   isAudioEnabled: boolean;
   isPlaying: boolean;
+  audioProgress: number;
   onPlayToggle: () => void;
 }
 
 function getBeadsTitle(step: RosaryStep, beadCount: number): string {
   if (step.type !== "beads") return step.title;
   return `${step.title.replace(/^\d+\s/, "")} ${beadCount + 1}/${step.beadIds.length}`;
+}
+
+interface TextToken {
+  text: string;
+  isBreak: boolean;
+}
+
+function tokenize(text: string): TextToken[] {
+  const tokens: TextToken[] = [];
+  const lines = text.split("\n");
+  lines.forEach((line, lineIdx) => {
+    if (line === "") {
+      tokens.push({ text: "\n", isBreak: true });
+    } else {
+      const words = line.split(/\s+/).filter(Boolean);
+      words.forEach((word) => {
+        tokens.push({ text: word, isBreak: false });
+      });
+    }
+    if (lineIdx < lines.length - 1 && line !== "") {
+      tokens.push({ text: "\n", isBreak: true });
+    }
+  });
+  return tokens;
 }
 
 export function PrayerCard({
@@ -26,9 +52,20 @@ export function PrayerCard({
   theme,
   isAudioEnabled,
   isPlaying,
+  audioProgress,
   onPlayToggle,
 }: PrayerCardProps) {
   const title = step.type === "beads" ? getBeadsTitle(step, beadCount) : step.title;
+
+  const tokens = useMemo(() => tokenize(step.text), [step.text]);
+  const wordCount = useMemo(() => tokens.filter((t) => !t.isBreak).length, [tokens]);
+
+  // No audio → all words highlighted; otherwise slight lead so it feels in sync
+  const allVisible = !isAudioEnabled || audioProgress === 0 && !isPlaying;
+  const leadProgress = Math.min(audioProgress + 0.04, 1);
+  const highlightedWords = allVisible ? wordCount : Math.floor(leadProgress * wordCount);
+
+  let wordIdx = 0;
 
   return (
     <div className="text-center animate-fadeIn flex flex-col items-center">
@@ -59,8 +96,24 @@ export function PrayerCard({
             )}
           </button>
         )}
-        <p className="text-lg md:text-xl text-navy leading-relaxed whitespace-pre-line font-serif font-medium text-left">
-          {step.text}
+        <p className="text-lg md:text-xl leading-relaxed font-serif font-medium text-left">
+          {tokens.map((token, i) => {
+            if (token.isBreak) {
+              return <br key={i} />;
+            }
+            const currentWordIdx = wordIdx++;
+            const isHighlighted = currentWordIdx < highlightedWords;
+            return (
+              <span
+                key={i}
+                className={`transition-colors duration-150 ${
+                  isHighlighted ? "text-navy" : "text-navy/30"
+                }`}
+              >
+                {currentWordIdx > 0 ? " " : ""}{token.text}
+              </span>
+            );
+          })}
         </p>
       </div>
     </div>
